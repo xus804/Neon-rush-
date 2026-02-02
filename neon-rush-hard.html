@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Neon Rush - HARDCORE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        :root {
+            --neon-pink: #ff006e;
+            --neon-blue: #00f5ff;
+            --neon-purple: #8338ec;
+            --neon-yellow: #ffbe0b;
+            --neon-green: #06ffa5;
+            --neon-red: #ff0040;
+            --dark-bg: #0a0a0f;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a0f2e 50%, #0a0a0f 100%);
+            overflow: hidden;
+            height: 100vh;
+            position: relative;
+        }
+
+        #stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        #gameCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        #ui {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        #topBar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .stat {
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid var(--neon-blue);
+            border-radius: 12px;
+            padding: 10px 20px;
+            box-shadow: 0 0 20px rgba(0, 245, 255, 0.5);
+            animation: pulseGlow 2s ease-in-out infinite;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--neon-blue);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 0.8;
+        }
+
+        .stat-value {
+            font-family: 'Orbitron', monospace;
+            font-size: 28px;
+            font-weight: 900;
+            color: white;
+            text-shadow: 0 0 10px var(--neon-blue);
+            line-height: 1;
+            margin-top: 5px;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 20px rgba(0, 245, 255, 0.5); }
+            50% { box-shadow: 0 0 30px rgba(0, 245, 255, 0.8); }
+        }
+
+        #combo {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Orbitron', monospace;
+            font-size: 80px;
+            font-weight: 900;
+            color: var(--neon-yellow);
+            text-shadow: 0 0 20px var(--neon-yellow), 0 0 40px var(--neon-yellow);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #startScreen, #gameOverScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            pointer-events: all;
+        }
+
+        #gameOverScreen {
+            display: none;
+        }
+
+        h1 {
+            font-family: 'Orbitron', monospace;
+            font-size: 72px;
+            font-weight: 900;
+            background: linear-gradient(45deg, var(--neon-pink), var(--neon-blue), var(--neon-purple));
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientShift 3s ease infinite;
+            margin-bottom: 20px;
+            text-align: center;
+            line-height: 1;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .subtitle {
+            font-size: 24px;
+            color: var(--neon-red);
+            margin-bottom: 40px;
+            text-align: center;
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px var(--neon-red);
+            animation: pulseRed 1s ease-in-out infinite;
+        }
+
+        @keyframes pulseRed {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+
+        button {
+            font-family: 'Orbitron', monospace;
+            font-size: 28px;
+            font-weight: 700;
+            padding: 20px 60px;
+            background: linear-gradient(135deg, var(--neon-red), var(--neon-purple));
+            border: 3px solid var(--neon-red);
+            border-radius: 50px;
+            color: white;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            box-shadow: 0 0 30px rgba(255, 0, 64, 0.6), 0 10px 30px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
+            pointer-events: all;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button:before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        button:active:before {
+            width: 300px;
+            height: 300px;
+        }
+
+        button:active {
+            transform: scale(0.95);
+            box-shadow: 0 0 40px rgba(255, 0, 64, 0.9), 0 5px 20px rgba(0, 0, 0, 0.7);
+        }
+
+        .instructions {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 18px;
+            margin-top: 40px;
+            text-align: center;
+            line-height: 1.8;
+        }
+
+        .warning {
+            color: var(--neon-red);
+            font-size: 22px;
+            font-weight: 700;
+            margin-top: 20px;
+            text-shadow: 0 0 10px var(--neon-red);
+        }
+
+        #finalScore {
+            font-size: 48px;
+            color: var(--neon-yellow);
+            margin: 20px 0;
+            font-family: 'Orbitron', monospace;
+            text-shadow: 0 0 20px var(--neon-yellow);
+        }
+
+        #bestScore {
+            font-size: 24px;
+            color: var(--neon-green);
+            margin-bottom: 40px;
+        }
+
+        .particle {
+            position: absolute;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        @keyframes fadeUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-100px) scale(0.5);
+            }
+        }
+
+        #missWarning {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 0, 0, 0);
+            pointer-events: none;
+            z-index: 3;
+            transition: background 0.1s;
+        }
+
+        .lives {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .life {
+            width: 12px;
+            height: 12px;
+            background: var(--neon-pink);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--neon-pink);
+        }
+
+        .life.lost {
+            background: rgba(255, 0, 110, 0.2);
+            box-shadow: none;
+        }
+
+        #difficulty {
+            position: absolute;
+            top: 120px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid var(--neon-red);
+            border-radius: 12px;
+            padding: 10px 20px;
+            box-shadow: 0 0 20px rgba(255, 0, 64, 0.5);
+        }
+
+        #difficulty .stat-label {
+            color: var(--neon-red);
+        }
+
+        #difficulty .stat-value {
+            color: var(--neon-red);
+            text-shadow: 0 0 10px var(--neon-red);
+        }
+
+        @media (max-width: 480px) {
+            h1 { font-size: 56px; }
+            .subtitle { font-size: 18px; }
+            button { font-size: 22px; padding: 15px 40px; }
+            .stat-value { font-size: 24px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="stars"></div>
+    <canvas id="gameCanvas"></canvas>
+    <div id="missWarning"></div>
+    
+    <div id="ui">
+        <div id="topBar">
+            <div class="stat">
+                <div class="stat-label">Score</div>
+                <div class="stat-value" id="score">0</div>
+                <div class="lives" id="lives"></div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Best</div>
+                <div class="stat-value" id="best">0</div>
+            </div>
+        </div>
+        <div id="difficulty" class="stat">
+            <div class="stat-label">Level</div>
+            <div class="stat-value" id="level">1</div>
+        </div>
+        <div id="combo"></div>
+    </div>
+
+    <div id="startScreen">
+        <h1>NEON RUSH</h1>
+        <div class="subtitle">⚠️ HARDCORE MODE ⚠️</div>
+        <button id="startBtn">START</button>
+        <div class="instructions">
+            Tap the falling orbs before they disappear<br>
+            Build combos for massive points<br>
+            Survive the chaos!
+        </div>
+        <div class="warning">
+            ⚡ FASTER SPAWNS<br>
+            ⚡ QUICKER ORBS<br>
+            ⚡ SMALLER TARGETS<br>
+            ⚡ RAPID DIFFICULTY SCALING
+        </div>
+    </div>
+
+    <div id="gameOverScreen">
+        <h1>GAME OVER</h1>
+        <div id="finalScore"></div>
+        <div id="bestScore"></div>
+        <button id="restartBtn">PLAY AGAIN</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const startScreen = document.getElementById('startScreen');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const scoreEl = document.getElementById('score');
+        const bestEl = document.getElementById('best');
+        const levelEl = document.getElementById('level');
+        const comboEl = document.getElementById('combo');
+        const finalScoreEl = document.getElementById('finalScore');
+        const bestScoreEl = document.getElementById('bestScore');
+        const missWarning = document.getElementById('missWarning');
+        const livesEl = document.getElementById('lives');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Create stars
+        const starsContainer = document.getElementById('stars');
+        for (let i = 0; i < 50; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.animationDelay = Math.random() * 3 + 's';
+            starsContainer.appendChild(star);
+        }
+
+        const colors = ['#ff006e', '#00f5ff', '#8338ec', '#ffbe0b', '#06ffa5'];
+        
+        let orbs = [];
+        let score = 0;
+        let bestScore = localStorage.getItem('neonRushHardBest') || 0;
+        let combo = 0;
+        let maxCombo = 0;
+        let lives = 3;
+        let gameRunning = false;
+        let level = 1;
+        
+        // HARDCORE DIFFICULTY SETTINGS
+        let spawnRate = 800;           // Start faster (was 1200)
+        let minSpawnRate = 150;        // Much faster minimum (was 300)
+        let spawnTimer = 0;
+        let orbSpeed = 3.5;            // Start faster (was 2)
+        let maxOrbSpeed = 9;           // Higher max speed (was 5)
+        let orbSizeMultiplier = 0.7;   // Smaller orbs (was 1)
+        let lastTime = Date.now();
+        let orbsSpawned = 0;
+        let multiOrbChance = 0.3;      // Chance to spawn multiple orbs at once
+
+        bestEl.textContent = bestScore;
+
+        class Orb {
+            constructor(isMultiSpawn = false) {
+                this.x = Math.random() * (canvas.width - 100) + 50;
+                this.y = isMultiSpawn ? Math.random() * -200 - 50 : -50;
+                // Smaller orbs in hardcore mode
+                this.radius = (20 + Math.random() * 15) * orbSizeMultiplier;
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+                // More variable speed
+                this.speed = orbSpeed + Math.random() * 3;
+                this.pulsePhase = Math.random() * Math.PI * 2;
+                this.hit = false;
+                // Some orbs accelerate as they fall
+                this.acceleration = Math.random() > 0.7 ? 0.05 : 0;
+            }
+
+            update(deltaTime) {
+                this.speed += this.acceleration;
+                this.y += this.speed * (deltaTime / 16);
+                this.pulsePhase += 0.15;
+            }
+
+            draw() {
+                const pulseFactor = 1 + Math.sin(this.pulsePhase) * 0.15;
+                const currentRadius = this.radius * pulseFactor;
+
+                // Outer glow
+                const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, currentRadius * 1.5);
+                gradient.addColorStop(0, this.color);
+                gradient.addColorStop(0.5, this.color + '80');
+                gradient.addColorStop(1, this.color + '00');
+                
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, currentRadius * 1.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Core
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, currentRadius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Highlight
+                const highlightGradient = ctx.createRadialGradient(
+                    this.x - currentRadius * 0.3, 
+                    this.y - currentRadius * 0.3, 
+                    0, 
+                    this.x, 
+                    this.y, 
+                    currentRadius
+                );
+                highlightGradient.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
+                highlightGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                
+                ctx.fillStyle = highlightGradient;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, currentRadius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            isClicked(x, y) {
+                const distance = Math.sqrt((x - this.x) ** 2 + (y - this.y) ** 2);
+                return distance < this.radius;
+            }
+        }
+
+        function updateLives() {
+            livesEl.innerHTML = '';
+            for (let i = 0; i < 3; i++) {
+                const life = document.createElement('div');
+                life.className = 'life';
+                if (i >= lives) life.classList.add('lost');
+                livesEl.appendChild(life);
+            }
+        }
+
+        function spawnOrb() {
+            orbsSpawned++;
+            
+            // Chance to spawn multiple orbs at once (gets higher as game progresses)
+            const shouldSpawnMultiple = Math.random() < multiOrbChance;
+            
+            if (shouldSpawnMultiple && level > 2) {
+                const count = Math.floor(Math.random() * 2) + 2; // 2-3 orbs
+                for (let i = 0; i < count; i++) {
+                    orbs.push(new Orb(true));
+                }
+            } else {
+                orbs.push(new Orb());
+            }
+        }
+
+        function updateDifficulty() {
+            // Increase level every 15 orbs spawned
+            const newLevel = Math.floor(orbsSpawned / 15) + 1;
+            if (newLevel > level) {
+                level = newLevel;
+                levelEl.textContent = level;
+                
+                // Flash level indicator
+                const difficultyEl = document.getElementById('difficulty');
+                difficultyEl.style.animation = 'none';
+                setTimeout(() => {
+                    difficultyEl.style.animation = 'pulseGlow 0.5s ease-in-out 3';
+                }, 10);
+            }
+            
+            // Aggressive difficulty scaling
+            if (spawnRate > minSpawnRate) {
+                spawnRate = Math.max(minSpawnRate, spawnRate - 15); // Faster decrease
+            }
+            
+            if (orbSpeed < maxOrbSpeed) {
+                orbSpeed = Math.min(maxOrbSpeed, orbSpeed + 0.08); // Faster increase
+            }
+            
+            // Increase multi-orb chance
+            multiOrbChance = Math.min(0.6, 0.3 + (level * 0.03));
+            
+            // Gradually make orbs smaller (more challenging)
+            orbSizeMultiplier = Math.max(0.5, 0.7 - (level * 0.02));
+        }
+
+        function createParticles(x, y, color) {
+            for (let i = 0; i < 15; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = x + 'px';
+                particle.style.top = y + 'px';
+                particle.style.width = (Math.random() * 8 + 4) + 'px';
+                particle.style.height = particle.style.width;
+                particle.style.background = color;
+                particle.style.borderRadius = '50%';
+                particle.style.boxShadow = `0 0 10px ${color}`;
+                particle.style.animation = `fadeUp ${Math.random() * 0.5 + 0.5}s ease-out forwards`;
+                
+                const angle = (Math.PI * 2 * i) / 15;
+                const velocity = Math.random() * 50 + 30;
+                particle.style.transform = `translate(${Math.cos(angle) * velocity}px, ${Math.sin(angle) * velocity}px)`;
+                
+                document.body.appendChild(particle);
+                setTimeout(() => particle.remove(), 1000);
+            }
+        }
+
+        function showCombo() {
+            if (combo >= 3) {
+                comboEl.textContent = `${combo}x COMBO!`;
+                comboEl.style.opacity = '1';
+                comboEl.style.animation = 'none';
+                setTimeout(() => {
+                    comboEl.style.animation = 'fadeUp 0.5s ease-out forwards';
+                }, 10);
+            }
+        }
+
+        function flashMiss() {
+            missWarning.style.background = 'rgba(255, 0, 0, 0.4)';
+            setTimeout(() => {
+                missWarning.style.background = 'rgba(255, 0, 0, 0)';
+            }, 100);
+        }
+
+        function handleTouch(e) {
+            if (!gameRunning) return;
+            
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const touches = e.changedTouches || [e];
+            
+            for (let touch of touches) {
+                const x = touch.clientX - rect.left;
+                const y = touch.clientY - rect.top;
+                
+                let hit = false;
+                for (let i = orbs.length - 1; i >= 0; i--) {
+                    if (orbs[i].isClicked(x, y) && !orbs[i].hit) {
+                        orbs[i].hit = true;
+                        hit = true;
+                        
+                        combo++;
+                        const points = 10 * combo;
+                        score += points;
+                        scoreEl.textContent = score;
+                        
+                        createParticles(touch.clientX, touch.clientY, orbs[i].color);
+                        showCombo();
+                        
+                        orbs.splice(i, 1);
+                        break;
+                    }
+                }
+                
+                if (!hit) {
+                    combo = 0;
+                }
+            }
+        }
+
+        canvas.addEventListener('touchstart', handleTouch);
+        canvas.addEventListener('mousedown', handleTouch);
+
+        function gameLoop() {
+            if (!gameRunning) return;
+
+            const currentTime = Date.now();
+            const deltaTime = currentTime - lastTime;
+            lastTime = currentTime;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Update and draw orbs
+            for (let i = orbs.length - 1; i >= 0; i--) {
+                orbs[i].update(deltaTime);
+                orbs[i].draw();
+
+                // Check if orb hit bottom (less forgiveness)
+                if (orbs[i].y > canvas.height + 30) {
+                    orbs.splice(i, 1);
+                    lives--;
+                    combo = 0;
+                    flashMiss();
+                    updateLives();
+                    
+                    if (lives <= 0) {
+                        endGame();
+                        return;
+                    }
+                }
+            }
+
+            // Spawn new orbs
+            spawnTimer += deltaTime;
+            if (spawnTimer > spawnRate) {
+                spawnOrb();
+                spawnTimer = 0;
+                updateDifficulty();
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function startGame() {
+            orbs = [];
+            score = 0;
+            combo = 0;
+            lives = 3;
+            level = 1;
+            spawnRate = 800;
+            orbSpeed = 3.5;
+            orbSizeMultiplier = 0.7;
+            spawnTimer = 0;
+            orbsSpawned = 0;
+            multiOrbChance = 0.3;
+            gameRunning = true;
+            lastTime = Date.now();
+            
+            scoreEl.textContent = '0';
+            levelEl.textContent = '1';
+            updateLives();
+            startScreen.style.display = 'none';
+            gameOverScreen.style.display = 'none';
+            
+            gameLoop();
+        }
+
+        function endGame() {
+            gameRunning = false;
+            
+            if (score > bestScore) {
+                bestScore = score;
+                localStorage.setItem('neonRushHardBest', bestScore);
+                bestEl.textContent = bestScore;
+            }
+            
+            finalScoreEl.textContent = `SCORE: ${score}`;
+            bestScoreEl.textContent = `BEST: ${bestScore}`;
+            gameOverScreen.style.display = 'flex';
+        }
+
+        document.getElementById('startBtn').addEventListener('click', startGame);
+        document.getElementById('restartBtn').addEventListener('click', startGame);
+
+        // Prevent scrolling on mobile
+        document.body.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+        }, { passive: false });
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+</html>
